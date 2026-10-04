@@ -4,7 +4,9 @@ import { es } from "./locales/es.ts"
 import { de } from "./locales/de.ts"
 import { zh } from "./locales/zh.ts"
 
-export type Locale = "en" | "pl" | "es" | "de" | "zh"
+const LOCALES = ["en", "pl", "es", "de", "zh"] as const
+
+export type Locale = (typeof LOCALES)[number]
 
 export type MessageKey = "peak" | "offpeak" | "nextIn" | "durationHm" | "durationM" | "durationLt"
 
@@ -22,14 +24,8 @@ const TAGS = {
   zh: "zh-CN",
 } satisfies Record<Locale, string>
 
-const ALIASES: Record<string, Locale> = {
-  en: "en",
-  pl: "pl",
-  es: "es",
-  sp: "es",
-  de: "de",
-  zh: "zh",
-  cn: "zh",
+function isLocale(value: string): value is Locale {
+  return LOCALES.some((locale) => locale === value)
 }
 
 export function detectLocale(input: unknown): Locale {
@@ -40,7 +36,7 @@ export function detectLocale(input: unknown): Locale {
       : undefined
   const raw = (fromOption ?? fromEnv ?? "en").toLowerCase().split(".").at(0) ?? ""
   const base = raw.replace("_", "-").split("-").at(0) ?? ""
-  return ALIASES[base] ?? "en"
+  return isLocale(base) ? base : "en"
 }
 
 function interpolate(template: string, params: Record<string, string | number>): string {

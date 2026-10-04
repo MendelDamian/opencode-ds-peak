@@ -127,8 +127,8 @@ the runtime (locale detection, fallback to English, `{placeholder}`
 interpolation) lives in `src/i18n.ts`. To add a language:
 
 1. Copy `src/locales/en.ts` to `src/locales/<locale>.ts` and translate the values.
-2. Register it in `src/i18n.ts`: add the code to the `Locale` type, `CATALOGS`,
-   `TAGS`, and `ALIASES`.
+2. Register it in `src/i18n.ts`: add the code to `LOCALES`, `CATALOGS`, and
+   `TAGS`. The `Locale` type is derived from `LOCALES`.
 
 A missing key is a TypeScript compile error.
 

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict"
 import { isPeak, nextTransition } from "../src/schedule.ts"
 import { configuredIsDeepSeek, isDeepSeek, usesDeepSeek } from "../src/model.ts"
+import { detectLocale } from "../src/i18n.ts"
 
 let failures = 0
 
@@ -71,6 +72,14 @@ test("usesDeepSeek falls back to the configured model", () => {
 test("configuredIsDeepSeek ignores bare model ids", () => {
   assert.equal(configuredIsDeepSeek("deepseek-chat"), false)
   assert.equal(configuredIsDeepSeek("opencode/deepseek-v4-pro"), true)
+})
+
+test("detectLocale keeps ISO codes and drops aliases", () => {
+  assert.equal(detectLocale("pl_PL.UTF-8"), "pl")
+  assert.equal(detectLocale("es-MX"), "es")
+  assert.equal(detectLocale("zh_CN.UTF-8"), "zh")
+  assert.equal(detectLocale("sp"), "en")
+  assert.equal(detectLocale("cn"), "en")
 })
 
 if (failures > 0) {
