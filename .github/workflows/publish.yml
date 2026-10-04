@@ -1,37 +1,20 @@
-name: CI & publish
+name: Publish to npm
 
 on:
-  workflow_dispatch:
   push:
-    branches: [main]
-  pull_request:
+    tags: ["v*"]
+  workflow_dispatch:
 
 concurrency:
-  group: publish-${{ github.ref }}
+  group: publish
   cancel-in-progress: false
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-
-      - run: npm ci
-      - run: npm run typecheck
-      - run: npm run sanity
-
   publish:
-    needs: check
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      id-token: write # GitHub issues the OIDC token npm verifies
+      contents: write # create the GitHub release
+      id-token: write # OIDC token for npm trusted publishing
     steps:
       - uses: actions/checkout@v4
 
@@ -44,27 +27,27 @@ jobs:
       # setup-node writes an "_authToken=" placeholder into .npmrc (part of the
       # OIDC flow); pin a recent npm so trusted publishing works.
       - name: Prepare npm
-        run: |
-          npm install -g npm@latest
-          echo "--- .npmrc ---"; cat "$NPM_CONFIG_USERCONFIG"
+        run: npm install -g npm@latest
 
       - run: npm ci
+      - run: npm run check
 
-      # Only publish when package.json carries a version npm does not have yet.
-      - name: Check whether version changed
-        id: version
-        env:
-          PACKAGE: opencode-ds-peak
+      - name: Verify tag matches package version
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
-          LOCAL=$(node -p "require('./package.json').version")
-          PUBLISHED=$(npm view "$PACKAGE" version 2>/dev/null || echo "")
-          echo "local=$LOCAL published=${PUBLISHED:-none}"
-          if [ "$LOCAL" = "$PUBLISHED" ]; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          fi
+          tag="${GITHUB_REF_NAME#v}"
+          version=$(node -p "require('./package.json').version")
+          echo "tag=$tag version=$version"
+          test "$tag" = "$version" || {
+            echo "Tag v$tag does not match package.json version $version"
+            exit 1
+          }
 
       - name: Publish to npm
-        if: steps.version.outputs.changed == 'true'
         run: npm publish --provenance --access public
+
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
