@@ -1,25 +1,36 @@
+import type { TuiPluginApi } from "@opencode-ai/plugin/tui"
+
+export type HostMessage = ReturnType<TuiPluginApi["state"]["session"]["messages"]>[number]
+
 export type ModelRef = {
-  providerID?: string
-  modelID?: string
-  model?: { providerID?: string; modelID?: string }
+  providerID: string
+  modelID: string
 }
 
-export function isDeepSeek(providerID?: string, modelID?: string): boolean {
-  return `${providerID ?? ""} ${modelID ?? ""}`.toLowerCase().includes("deepseek")
+export function isDeepSeek(ref: ModelRef): boolean {
+  return `${ref.providerID} ${ref.modelID}`.toLowerCase().includes("deepseek")
 }
 
-export function usesDeepSeek(messages: readonly ModelRef[], configuredModel?: string): boolean {
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const message = messages[i]
-    const providerID = message.providerID ?? message.model?.providerID
-    const modelID = message.modelID ?? message.model?.modelID
-    if (providerID || modelID) return isDeepSeek(providerID, modelID)
+function modelRef(message: HostMessage): ModelRef {
+  switch (message.role) {
+    case "user":
+      return { providerID: message.model.providerID, modelID: message.model.modelID }
+    case "assistant":
+      return { providerID: message.providerID, modelID: message.modelID }
+    default: {
+      const _exhaustive: never = message
+      return _exhaustive
+    }
   }
+}
 
-  if (typeof configuredModel === "string" && configuredModel.includes("/")) {
-    const [providerID, ...rest] = configuredModel.split("/")
-    return isDeepSeek(providerID, rest.join("/"))
-  }
+export function configuredIsDeepSeek(configuredModel?: string): boolean {
+  if (typeof configuredModel !== "string" || !configuredModel.includes("/")) return false
+  const [providerID, ...rest] = configuredModel.split("/")
+  return isDeepSeek({ providerID, modelID: rest.join("/") })
+}
 
-  return false
+export function usesDeepSeek(messages: readonly HostMessage[], configuredModel?: string): boolean {
+  const last = messages.at(-1)
+  return last ? isDeepSeek(modelRef(last)) : configuredIsDeepSeek(configuredModel)
 }
