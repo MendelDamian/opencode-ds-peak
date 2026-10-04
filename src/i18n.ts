@@ -1,0 +1,70 @@
+export type Locale = "en" | "pl" | "es" | "de" | "zh"
+
+export type MessageKey = "peak" | "offpeak" | "nextIn" | "durationHm" | "durationM" | "durationLt"
+
+export type Messages = Record<MessageKey, string>
+
+export type Translate = (key: MessageKey, params?: Record<string, string | number>) => string
+
+import { en } from "./locales/en.ts"
+import { pl } from "./locales/pl.ts"
+import { es } from "./locales/es.ts"
+import { de } from "./locales/de.ts"
+import { zh } from "./locales/zh.ts"
+
+const CATALOGS: Record<Locale, Messages> = { en, pl, es, de, zh }
+
+const TAGS: Record<Locale, string> = {
+  en: "en-US",
+  pl: "pl-PL",
+  es: "es-ES",
+  de: "de-DE",
+  zh: "zh-CN",
+}
+
+const ALIASES: Record<string, Locale> = {
+  en: "en",
+  pl: "pl",
+  es: "es",
+  sp: "es",
+  de: "de",
+  zh: "zh",
+  cn: "zh",
+}
+
+export function detectLocale(input: unknown): Locale {
+  const fromOption = typeof input === "string" && input.trim() ? input : undefined
+  const fromEnv =
+    typeof process !== "undefined"
+      ? process.env.LC_ALL || process.env.LC_MESSAGES || process.env.LANG
+      : undefined
+  const raw = (fromOption ?? fromEnv ?? "en").toLowerCase().split(".")[0]
+  const base = raw.replace("_", "-").split("-")[0]
+  return ALIASES[base] ?? "en"
+}
+
+function interpolate(template: string, params: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (placeholder, name: string) =>
+    Object.prototype.hasOwnProperty.call(params, name) ? String(params[name]) : placeholder,
+  )
+}
+
+export function translate(locale: Locale, key: MessageKey, params?: Record<string, string | number>): string {
+  const template = CATALOGS[locale]?.[key] ?? CATALOGS.en[key] ?? key
+  return params ? interpolate(template, params) : template
+}
+
+export type I18n = {
+  locale: Locale
+  tag: string
+  t: Translate
+}
+
+export function createI18n(input?: unknown): I18n {
+  const locale = detectLocale(input)
+  return {
+    locale,
+    tag: TAGS[locale],
+    t: (key, params) => translate(locale, key, params),
+  }
+}

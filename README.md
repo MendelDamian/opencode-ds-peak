@@ -8,6 +8,11 @@ DeepSeek prices are defined in UTC, so this plugin computes the window in UTC
 and renders times in your local time zone. Daylight saving is handled
 automatically.
 
+The block is only visible while the active session uses a DeepSeek model. A
+model counts as DeepSeek when the provider id or model id contains `deepseek`
+(for example `deepseek/...`, `opencode/deepseek-v4.1-flash`, or
+`openrouter/...deepseek...`). For every other model the sidebar stays clean.
+
 ```
 ┌────────────────────┐
 │ ● OFF-PEAK         │
@@ -100,6 +105,17 @@ is no build step.
 ## Languages
 
 `en` (English), `pl` (Polski), `es` (Español), `de` (Deutsch), `zh` (中文).
+
+The i18n layer is hand-rolled and dependency-free — only the built-in `Intl`
+API plus plain message catalogs. Catalogs live in `src/locales/<locale>.ts`;
+the runtime (locale detection, fallback to English, `{placeholder}`
+interpolation) lives in `src/i18n.ts`. To add a language:
+
+1. Copy `src/locales/en.ts` to `src/locales/<locale>.ts` and translate the values.
+2. Register it in `src/i18n.ts`: add the code to the `Locale` type, `CATALOGS`,
+   `TAGS`, and `ALIASES`.
+
+A missing key is a TypeScript compile error.
 
 ## Notes
 
