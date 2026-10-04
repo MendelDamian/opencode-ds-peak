@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { isPeak, nextTransition } from "../src/schedule.ts"
 import { configuredIsDeepSeek, isDeepSeek, usesDeepSeek } from "../src/model.ts"
-import { detectLocale } from "../src/i18n.ts"
+import { createI18n, detectLocale, formatDuration } from "../src/i18n.ts"
 
 let failures = 0
 
@@ -80,6 +80,27 @@ test("detectLocale keeps ISO codes and drops aliases", () => {
   assert.equal(detectLocale("zh_CN.UTF-8"), "zh")
   assert.equal(detectLocale("sp"), "en")
   assert.equal(detectLocale("cn"), "en")
+})
+
+test("formatDuration shows whole hours when an hour or more is left", () => {
+  const pl = createI18n("pl").t
+  assert.equal(formatDuration(11 * 3_600_000 + 8 * 60_000, pl), "11 godz.")
+  assert.equal(formatDuration(2 * 3_600_000 + 5 * 60_000, pl), "2 godz.")
+})
+
+test("formatDuration shows minutes under an hour", () => {
+  const pl = createI18n("pl").t
+  assert.equal(formatDuration(43 * 60_000, pl), "43 min")
+  assert.equal(formatDuration(30_000, pl), "<1 min")
+})
+
+test("countdown wording depends on state", () => {
+  const en = createI18n("en").t
+  assert.equal(en("peakIn", { time: "2h" }), "in 2h")
+  assert.equal(en("offpeakLeft", { time: "2h" }), "2h left")
+  const pl = createI18n("pl").t
+  assert.equal(pl("peakIn", { time: "2 godz." }), "za 2 godz.")
+  assert.equal(pl("offpeakLeft", { time: "2 godz." }), "jeszcze 2 godz.")
 })
 
 if (failures > 0) {

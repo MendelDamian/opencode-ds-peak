@@ -16,13 +16,15 @@ model counts as DeepSeek when the provider id or model id contains `deepseek`
 ```
 ┌────────────────────┐
 │ ● OFF-PEAK         │
-│ next in 1h 40m     │
+│ 8h left            │
 └────────────────────┘
 ```
 
 The dot is green during off-peak, red during peak, and yellow when peak starts
-within 30 minutes. The second line counts down to the next switch (peak →
-off-peak, or off-peak → peak).
+within 30 minutes. The second line counts down to the next switch and is worded
+by state: during peak it reads "in {time}" (off-peak starting), during off-peak
+"{time} left". An hour or more shows whole hours; under an hour shows minutes.
+The Polish catalogs use "za {time}" (peak) and "jeszcze {time}" (off-peak).
 
 | Status   | Meaning                          |
 | -------- | -------------------------------- |

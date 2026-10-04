@@ -8,7 +8,7 @@ const LOCALES = ["en", "pl", "es", "de", "zh"] as const
 
 export type Locale = (typeof LOCALES)[number]
 
-export type MessageKey = "peak" | "offpeak" | "nextIn" | "durationHm" | "durationM" | "durationLt"
+export type MessageKey = "peak" | "offpeak" | "peakIn" | "offpeakLeft" | "durationH" | "durationM" | "durationLt"
 
 export type Messages = Record<MessageKey, string>
 
@@ -48,6 +48,15 @@ function interpolate(template: string, params: Record<string, string | number>):
 export function translate(locale: Locale, key: MessageKey, params?: Record<string, string | number>): string {
   const template = CATALOGS[locale][key]
   return params ? interpolate(template, params) : template
+}
+
+/** Human countdown: whole hours when at least an hour is left, otherwise minutes. */
+export function formatDuration(ms: number, t: Translate): string {
+  const minutes = Math.max(0, Math.floor(ms / 60_000))
+  if (minutes < 1) return t("durationLt")
+
+  const hours = Math.floor(minutes / 60)
+  return hours > 0 ? t("durationH", { h: hours }) : t("durationM", { m: minutes })
 }
 
 export type I18n = {

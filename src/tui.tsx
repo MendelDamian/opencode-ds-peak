@@ -1,21 +1,11 @@
 /** @jsxImportSource @opentui/solid */
 import { createSignal, onCleanup } from "solid-js"
 import type { TuiPlugin, TuiPluginModule } from "@opencode-ai/plugin/tui"
-import { createI18n } from "./i18n.ts"
-import type { Translate } from "./i18n.ts"
+import { createI18n, formatDuration } from "./i18n.ts"
 import { usesDeepSeek } from "./model.ts"
 import { isPeak, nextTransition, SOON_MS } from "./schedule.ts"
 
 const DOT = "\u25CF"
-
-function formatRemaining(ms: number, t: Translate): string {
-  const total = Math.max(0, Math.floor(ms / 60_000))
-  const h = Math.floor(total / 60)
-  const m = total % 60
-
-  if (total < 1) return t("durationLt")
-  return h > 0 ? t("durationHm", { h, m }) : t("durationM", { m })
-}
 
 const tui: TuiPlugin = async (api, options) => {
   const { t } = createI18n(options?.locale)
@@ -38,7 +28,7 @@ const tui: TuiPlugin = async (api, options) => {
           refresh()
           setPeak(isPeak(now))
           setSoon(!isPeak(now) && next.toPeak && next.at.getTime() - now.getTime() <= SOON_MS)
-          setRemaining(formatRemaining(next.at.getTime() - now.getTime(), t))
+          setRemaining(formatDuration(next.at.getTime() - now.getTime(), t))
         }
 
         tick()
@@ -54,6 +44,8 @@ const tui: TuiPlugin = async (api, options) => {
           if (soon()) return ctx.theme.current.warning
           return ctx.theme.current.success
         }
+
+        const statusLine = () => (peak() ? t("peakIn", { time: remaining() }) : t("offpeakLeft", { time: remaining() }))
 
         return enabled() ? (
           <box
@@ -71,7 +63,7 @@ const tui: TuiPlugin = async (api, options) => {
                 {DOT} {peak() ? t("peak") : t("offpeak")}
               </b>
             </text>
-            <text fg={ctx.theme.current.textMuted}>{t("nextIn", { time: remaining() })}</text>
+            <text fg={ctx.theme.current.textMuted}>{statusLine()}</text>
           </box>
         ) : null
       },
