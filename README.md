@@ -85,13 +85,28 @@ Or install with the CLI, which writes the config entry for you:
 opencode plugin opencode-ds-peak -g
 ```
 
-## Publishing (maintainers)
+## Publishing
+
+Publishing is automated by GitHub Actions
+([`.github/workflows/publish.yml`](.github/workflows/publish.yml)). Pull requests
+run typecheck + sanity. On every push to `main` the same checks run, and if the
+`version` in `package.json` is not on npm yet, the workflow publishes with
+provenance via [npm trusted publishing](https://docs.npmjs.com/trusted-publishers)
+(OIDC, no long-lived token).
+
+To cut a release:
 
 ```sh
-npm login              # once, opens the browser
-npm version patch      # or minor / major
-npm publish            # publishes to npm
+npm version patch   # or minor / major — bumps package.json and creates a tag
+git push --follow-tags
 ```
+
+One-time setup on npmjs.com: add a **Trusted Publisher** for `opencode-ds-peak`
+with owner `MendelDamian`, repository `opencode-ds-peak`, and workflow
+`publish.yml`. Before the package exists, configure it as a pending publisher,
+or publish `0.1.0` once manually with `npm publish`.
+
+Alternatively, publish locally with `npm login && npm publish`.
 
 The package ships raw `.tsx` source; opencode's runtime transpiles it, so there
 is no build step.
