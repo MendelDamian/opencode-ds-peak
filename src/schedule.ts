@@ -30,5 +30,5 @@ export function nextTransition(from: Date = new Date()): Transition {
     }
   }
 
-  return { at: new Date(from.getTime() + 3_600_000), toPeak: !isPeak(from) }
+  throw new Error("nextTransition: no peak transition found within 9 days")
 }

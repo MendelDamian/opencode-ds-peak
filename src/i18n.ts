@@ -1,3 +1,9 @@
+import { en } from "./locales/en.ts"
+import { pl } from "./locales/pl.ts"
+import { es } from "./locales/es.ts"
+import { de } from "./locales/de.ts"
+import { zh } from "./locales/zh.ts"
+
 export type Locale = "en" | "pl" | "es" | "de" | "zh"
 
 export type MessageKey = "peak" | "offpeak" | "nextIn" | "durationHm" | "durationM" | "durationLt"
@@ -6,21 +12,15 @@ export type Messages = Record<MessageKey, string>
 
 export type Translate = (key: MessageKey, params?: Record<string, string | number>) => string
 
-import { en } from "./locales/en.ts"
-import { pl } from "./locales/pl.ts"
-import { es } from "./locales/es.ts"
-import { de } from "./locales/de.ts"
-import { zh } from "./locales/zh.ts"
-
 const CATALOGS: Record<Locale, Messages> = { en, pl, es, de, zh }
 
-const TAGS: Record<Locale, string> = {
+const TAGS = {
   en: "en-US",
   pl: "pl-PL",
   es: "es-ES",
   de: "de-DE",
   zh: "zh-CN",
-}
+} satisfies Record<Locale, string>
 
 const ALIASES: Record<string, Locale> = {
   en: "en",
@@ -38,8 +38,8 @@ export function detectLocale(input: unknown): Locale {
     typeof process !== "undefined"
       ? process.env.LC_ALL || process.env.LC_MESSAGES || process.env.LANG
       : undefined
-  const raw = (fromOption ?? fromEnv ?? "en").toLowerCase().split(".")[0]
-  const base = raw.replace("_", "-").split("-")[0]
+  const raw = (fromOption ?? fromEnv ?? "en").toLowerCase().split(".").at(0) ?? ""
+  const base = raw.replace("_", "-").split("-").at(0) ?? ""
   return ALIASES[base] ?? "en"
 }
 
@@ -50,13 +50,13 @@ function interpolate(template: string, params: Record<string, string | number>):
 }
 
 export function translate(locale: Locale, key: MessageKey, params?: Record<string, string | number>): string {
-  const template = CATALOGS[locale]?.[key] ?? CATALOGS.en[key] ?? key
+  const template = CATALOGS[locale][key]
   return params ? interpolate(template, params) : template
 }
 
 export type I18n = {
   locale: Locale
-  tag: string
+  tag: (typeof TAGS)[Locale]
   t: Translate
 }
 

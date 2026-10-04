@@ -26,7 +26,7 @@ function modelRef(message: HostMessage): ModelRef {
 
 export function configuredIsDeepSeek(configuredModel?: string): boolean {
   if (typeof configuredModel !== "string" || !configuredModel.includes("/")) return false
-  const [providerID, ...rest] = configuredModel.split("/")
+  const [providerID = "", ...rest] = configuredModel.split("/")
   return isDeepSeek({ providerID, modelID: rest.join("/") })
 }
 
