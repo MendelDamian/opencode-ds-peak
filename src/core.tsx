@@ -1,3 +1,4 @@
+/** @jsxImportSource @opentui/solid */
 import { createSignal } from "solid-js"
 import { optionLocale, parseSettings, type ViewMode } from "./config.ts"
 import {

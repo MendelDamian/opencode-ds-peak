@@ -1,3 +1,4 @@
+/** @jsxImportSource @opentui/solid */
 import { createSignal, onCleanup } from "solid-js"
 import type { TuiPlugin, TuiPluginApi } from "@opencode-ai/plugin/tui"
 import { createPeakPlugin } from "./core.tsx"
