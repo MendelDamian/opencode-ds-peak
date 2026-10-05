@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="470" viewBox="0 0 920 470" role="img" aria-label="Preview of the opencode-ds-peak sidebar block and its states">
+  <style>
+    .mono { font-family: "SFMono-Regular", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; }
+    .label { fill: #808080; font-size: 13px; letter-spacing: 2px; }
+    .muted { fill: #808080; }
+    .green { fill: #7fd88f; }
+    .amber { fill: #f5a742; }
+    .red { fill: #e06c75; }
+    .bold { font-weight: 700; }
+    .bg { fill: #0a0a0a; }
+    .panel { fill: #141414; }
+    .line { stroke: #484848; }
+  </style>
+
+  <rect x="1" y="1" width="918" height="468" rx="14" class="bg" stroke="#484848" stroke-width="2"/>
+
+  <circle cx="28" cy="30" r="7" fill="#e06c75"/>
+  <circle cx="52" cy="30" r="7" fill="#f5a742"/>
+  <circle cx="76" cy="30" r="7" fill="#7fd88f"/>
+  <text x="460" y="35" text-anchor="middle" class="mono muted" font-size="14">opencode</text>
+  <line x1="1" y1="56" x2="919" y2="56" stroke="#1e1e1e" stroke-width="2"/>
+
+  <rect x="34" y="84" width="380" height="352" rx="10" class="bg" stroke="#484848" stroke-width="2"/>
+  <text x="60" y="116" class="mono label">SIDEBAR</text>
+
+  <rect x="66" y="146" width="316" height="112" rx="8" class="panel" stroke="#484848" stroke-width="2"/>
+  <circle cx="100" cy="186" r="9" class="green"/>
+  <text x="122" y="195" class="mono green bold" font-size="27">OFF-PEAK</text>
+  <text x="100" y="235" class="mono muted" font-size="21">8h left</text>
+
+  <text x="66" y="304" class="mono label">LINE MODE</text>
+  <circle cx="78" cy="337" r="8" class="red"/>
+  <text x="98" y="345" class="mono red bold" font-size="22">PEAK</text>
+  <text x="170" y="345" class="mono muted" font-size="22">in 3h</text>
+
+  <text x="66" y="398" class="mono label">CHECK IT WITH</text>
+  <text x="66" y="424" class="mono muted" font-size="18">/peak</text>
+
+  <rect x="440" y="84" width="446" height="352" rx="10" class="bg" stroke="#484848" stroke-width="2"/>
+  <text x="466" y="116" class="mono label">STATES</text>
+
+  <circle cx="478" cy="158" r="9" class="green"/>
+  <text x="500" y="167" class="mono green bold" font-size="22">OFF-PEAK</text>
+  <text x="636" y="167" class="mono muted" font-size="20">8h left</text>
+
+  <circle cx="478" cy="212" r="9" class="amber"/>
+  <text x="500" y="221" class="mono amber bold" font-size="22">OFF-PEAK</text>
+  <text x="636" y="221" class="mono muted" font-size="20">in 25m</text>
+
+  <circle cx="478" cy="266" r="9" class="red"/>
+  <text x="500" y="275" class="mono red bold" font-size="22">PEAK</text>
+  <text x="636" y="275" class="mono muted" font-size="20">in 3h</text>
+
+  <circle cx="478" cy="320" r="9" class="green"/>
+  <text x="500" y="329" class="mono green bold" font-size="22">HOLIDAY</text>
+  <text x="636" y="329" class="mono muted" font-size="20">3d left</text>
+
+  <text x="466" y="386" class="mono label">DOT</text>
+  <text x="466" y="414" class="mono muted" font-size="15">green off-peak, amber under 30m, red peak</text>
+</svg>

@@ -11,34 +11,52 @@ DeepSeek charges full price during peak hours and half price the rest of the
 time. This OpenCode TUI plugin adds a small live block to your sidebar showing
 the current price tier and how long until the next switch.
 
-<table>
-<tr>
-<th align="left">box</th>
-<th align="left">line</th>
-</tr>
-<tr>
-<td><pre>┌────────────────────┐
-│ ● OFF-PEAK         │
-│ 8h left            │
-└────────────────────┘</pre></td>
-<td><pre>● OFF-PEAK 8h left</pre></td>
-</tr>
-</table>
+<img src="assets/sidebar.svg" alt="Preview: the sidebar block shows OFF-PEAK in green with a countdown, and switches to red PEAK in a peak window. The dot turns amber when the switch is under 30 minutes away." width="920">
 
 It runs with no configuration. The block follows your OpenCode language, uses
 DeepSeek's published schedule, and only appears in sessions that use a DeepSeek
 model.
 
+## Requirements
+
+- **OpenCode 1.18.x or 2.0.x.** The package ships both plugin shapes at once:
+  the v1 TUI plugin (`tui`) and the v2 CLI plugin (`setup`). Each OpenCode
+  release loads the entry it understands.
+- No Node or Bun setup. OpenCode installs npm plugins for you.
+
+Verified against OpenCode 2.0.22 and 1.18.34. v2 support ships in
+`opencode-ds-peak` 0.3.0 and newer.
+
 ## Install
 
-Run the CLI:
+One package serves both OpenCode lines. OpenCode 2.x reads the v2 CLI plugin
+entry; OpenCode 1.x reads the v1 TUI plugin entry.
+
+### OpenCode 2.x
+
+```sh
+opencode plugin add opencode-ds-peak
+```
+
+That writes the package to `opencode.json`, and the CLI loads its TUI component
+automatically. To keep it CLI-only, add it to `~/.config/opencode/cli.json`
+instead:
+
+```json
+{
+  "$schema": "https://opencode.ai/v2/cli.json",
+  "plugins": ["opencode-ds-peak"]
+}
+```
+
+### OpenCode 1.x
 
 ```sh
 opencode plugin opencode-ds-peak -g
 ```
 
-Or add the entry yourself — `~/.config/opencode/tui.json` for every project, or
-`.opencode/tui.json` for one:
+Or add the entry yourself. Use `~/.config/opencode/tui.json` for every project,
+or `.opencode/tui.json` for one:
 
 ```json
 {
@@ -49,6 +67,26 @@ Or add the entry yourself — `~/.config/opencode/tui.json` for every project, o
 
 Restart OpenCode, then open the sidebar with your leader key plus `b` (default
 `ctrl+x`, then `b`). The block appears above the built-in context section.
+
+> **The block only appears in sessions that use a DeepSeek model.** Open a
+> session with any other model and the sidebar stays empty by design. If you are
+> not sure it is working, run `/peak`.
+
+## Verify it works
+
+Run `/peak` from the command palette. It reports the current tier and the next
+switch for any session, whether or not that session uses DeepSeek. If it opens,
+the plugin is installed.
+
+For the sidebar block itself, open a session whose model id contains
+`deepseek`, then toggle the sidebar (leader + `b`).
+
+## Uninstall
+
+Remove the `opencode-ds-peak` entry from the `plugin` array in your
+`tui.json` (global or project), then restart OpenCode. If you set `notify` or
+changed the view or language through `/peak`, those choices are stored under the
+`opencode-ds-peak.*` keys and can be cleared from OpenCode's key-value store.
 
 ## Why
 
@@ -72,18 +110,20 @@ Restart OpenCode, then open the sidebar with your leader key plus `b` (default
   can add your own dates.
 - The schedule is configurable. Override the peak windows, the weekdays, and the
   holiday list.
-- Optional notifications. A single toast fires when the price tier flips while a
-  DeepSeek session is active, even when the sidebar is closed.
+- Optional notifications. A single toast appears when the price tier changes
+  while a DeepSeek session is active, even when the sidebar is closed.
 - A `/peak` command. It shows the current tier and the next switch, and changes
   the view, the notifications, and the language.
 - Five languages: English, Polish, Spanish, German, and Chinese. The plugin
   detects your locale.
+- One package for OpenCode v1 and v2. The two entries share the same logic, so
+  the sidebar, command and schedule behave the same on both.
 - No runtime dependencies. The i18n layer is hand-rolled and the package ships
   raw `.tsx`.
 
 ## Schedule
 
-Peak hours are `01:00–04:00` and `06:00–10:00` UTC, Monday through Friday.
+Peak hours are 01:00 to 04:00 and 06:00 to 10:00 UTC, Monday through Friday.
 Everything else is off-peak, including weekends and Chinese public holidays.
 
 The built-in holiday table covers China 2026. DeepSeek follows the Chinese
@@ -94,14 +134,14 @@ through the `schedule.holidays` option, or turn the table off with
 The label reads `HOLIDAY` only on a working-day holiday. On a holiday that falls
 on a weekend it stays `OFF-PEAK`, since the day is off-peak either way.
 
-Prices are defined in UTC, so the plugin computes the window in UTC and renders
-it in your local time zone. The plugin handles daylight saving. For reference,
-in Poland that works out to:
+DeepSeek defines prices in UTC. The plugin computes the window in UTC and
+renders it in your local time zone, and it handles daylight saving. In Poland
+that works out to:
 
-| Season        | Peak (local)             | Off-peak (local)                |
-| ------------- | ------------------------ | ------------------------------- |
-| Summer (CEST) | 03:00–06:00, 08:00–12:00 | 12:00–03:00 + weekends/holidays |
-| Winter (CET)  | 02:00–05:00, 07:00–11:00 | 11:00–02:00 + weekends/holidays |
+| Season        | Peak (local)                   | Off-peak (local)                   |
+| ------------- | ------------------------------ | ---------------------------------- |
+| Summer (CEST) | 03:00 to 06:00, 08:00 to 12:00 | 12:00 to 03:00 + weekends/holidays |
+| Winter (CET)  | 02:00 to 05:00, 07:00 to 11:00 | 11:00 to 02:00 + weekends/holidays |
 
 ## Configuration
 
@@ -111,7 +151,7 @@ Every option is optional. These are the defaults:
 | ------------------------- | ---------- | -------------------------------- | ----------- |
 | `locale`                  | string     | system locale                    | UI language. One of `en`, `pl`, `es`, `de`, `zh`. Detected from `LC_ALL`, `LC_MESSAGES` or `LANG` when omitted, falling back to `en`. |
 | `view`                    | string     | `box`                            | `box` for the bordered block, `line` for a single compact line. |
-| `notify`                  | boolean    | `false`                          | Show a toast when the tier flips while a DeepSeek session is active. |
+| `notify`                  | boolean    | `false`                          | Show a toast when the tier changes while a DeepSeek session is active. |
 | `schedule.days`           | number[]   | `[1,2,3,4,5]`                    | Peak weekdays as ISO numbers, `1` for Monday through `7` for Sunday. |
 | `schedule.windows`        | string[][] | `[["01:00","04:00"],["06:00","10:00"]]` | Peak windows as `[from, to]` `HH:MM` UTC pairs. Half-open, so `to` is the first off-peak minute. |
 | `schedule.holidays`       | string[]   | `[]`                             | Extra off-peak dates as `YYYY-MM-DD` UTC keys. |
@@ -142,8 +182,8 @@ A full example:
 
 Bad values fall back to the default for that field. A window or day list keeps
 its valid entries and falls back to the default only when none are valid. An
-empty window or day list means peak never applies, which is how you pin the
-plugin off-peak. An invalid holiday date is dropped.
+empty window or day list means peak never applies, which turns peak off
+entirely. An invalid holiday date is dropped.
 
 ## Command
 
@@ -160,72 +200,71 @@ The settings persist and override the matching config option.
 
 English `en`, Polish `pl`, Spanish `es`, German `de`, Chinese `zh`. Pick a
 language from `/peak`; the choice persists and overrides the `locale` option.
+Otherwise the plugin detects your locale from the environment.
 
-The i18n layer is hand-rolled and dependency-free. It uses plain message
-catalogs plus the built-in `Intl` API. Catalogs live in
-`src/locales/<locale>.ts`; locale detection, English fallback and
-`{placeholder}` interpolation live in `src/i18n.ts`. To add a language:
+To add a language, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-1. Copy `src/locales/en.ts` to `src/locales/<locale>.ts` and translate the values.
-2. Register it in `src/i18n.ts`: add the code to `LOCALES`, `CATALOGS`, and
-   `TAGS`. The `Locale` type is derived from `LOCALES`.
+## Troubleshooting
 
-A missing key is a TypeScript compile error.
+**The sidebar shows nothing.**
+The block is hidden unless the active session uses a DeepSeek model. Open a
+session whose model id contains `deepseek` (for example `deepseek/...`, or a
+provider route that includes it). Also make sure the sidebar is open. Use leader
+key plus `b` by default. Running OpenCode with `--pure` disables all external
+plugins, so the block will not load.
 
-## Notes
+**I want to confirm the plugin is installed.**
+Run `/peak`. It responds for every session, not only DeepSeek ones.
 
-- A model counts as DeepSeek when the provider id or model id contains
-  `deepseek`, for example `deepseek/...`, `opencode/deepseek-v4.1-flash`, or
-  `openrouter/...deepseek...`.
+**The countdown looks wrong.**
+The schedule is defined in UTC and rendered in your local time zone; daylight
+saving is handled automatically. Check that your system clock and time zone are
+correct.
 
-## Install from source
+**Holidays are wrong.**
+The built-in table covers China 2026 only. Add other dates with
+`schedule.holidays`, or set `schedule.builtinHolidays: false` to ignore it.
 
-```sh
-git clone https://github.com/MendelDamian/opencode-ds-peak
-cd opencode-ds-peak
-npm install
-```
+**Notifications do not appear.**
+Turn them on in `/peak`. A toast appears only when the tier changes while a
+DeepSeek session is active.
 
-Then point `tui.json` at the entry file with an absolute path:
+**My config changes do not apply.**
+OpenCode reloads config on restart. A bad value falls back to its default
+without an error. On v1 the options live in `tui.json`. On v2 they live beside
+the `plugins` entry in `opencode.json` or `cli.json`.
 
-```json
-{
-  "$schema": "https://opencode.ai/tui.json",
-  "plugin": [
-    ["/absolute/path/to/opencode-ds-peak/src/tui.tsx", { "locale": "pl" }]
-  ]
-}
-```
+## FAQ
 
-## Development
+**Does it work with DeepSeek through OpenRouter, or a self-hosted route?**
+Yes. A model counts as DeepSeek when the provider id or model id contains
+`deepseek`, for example `openrouter/...deepseek...`.
 
-```sh
-npm run check   # tsc --noEmit + sanity tests
-npm run sanity  # schedule, model detection and i18n tests only
-```
+**Does it make network calls or phone home?**
+No. There is no network access, no telemetry, and no runtime dependency. The
+schedule is computed locally.
 
-## Publishing
+**Can I turn peak pricing off, or use a different schedule?**
+Yes. Override `schedule.windows` and `schedule.days`, or set both to empty
+arrays to turn peak off permanently.
 
-Two workflows:
+**Will it work on OpenCode v2?**
+Yes, since 0.3.0. One package serves both the v1 and v2 plugin APIs. See
+[Requirements](#requirements).
 
-- [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs typecheck + sanity
-  on every push to `main` and every pull request.
-- [`.github/workflows/publish.yml`](.github/workflows/publish.yml) runs when a
-  `v*` tag is pushed, or manually via *Run workflow*. It re-runs the checks,
-  verifies the tag matches `package.json`, publishes to npm with
-  [trusted publishing](https://docs.npmjs.com/trusted-publishers), which uses
-  OIDC instead of a long-lived token, and provenance, then creates a GitHub
-  release.
+**How do I add a language?**
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-To cut a release:
+## Support
 
-```sh
-npm version patch   # or minor / major; bumps package.json and creates vX.Y.Z
-git push --follow-tags
-```
+- Questions, ideas and show-and-tell: [Discussions](https://github.com/MendelDamian/opencode-ds-peak/discussions).
+- Bugs and feature requests: [open an issue](https://github.com/MendelDamian/opencode-ds-peak/issues).
+- Problems with OpenCode itself: [OpenCode Discord](https://opencode.ai/discord).
 
-There is no build step. The package ships raw `.tsx` source and OpenCode
-transpiles it at runtime.
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow, how to add
+a language, and how releases are cut.
 
 ## License
 

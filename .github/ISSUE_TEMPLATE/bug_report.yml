@@ -1,0 +1,86 @@
+name: Bug report
+description: Something is wrong with the sidebar block, the countdown, or /peak.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing, check the [Troubleshooting section](https://github.com/MendelDamian/opencode-ds-peak#troubleshooting).
+        The block is hidden unless the active session uses a DeepSeek model.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did you see instead?
+    validations:
+      required: true
+
+  - type: input
+    id: opencode-version
+    attributes:
+      label: OpenCode version
+      description: Output of `opencode --version`.
+      placeholder: "1.18.34"
+    validations:
+      required: true
+
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Plugin version
+      description: The version in your `tui.json` entry, or the npm package version.
+      placeholder: "0.2.0"
+    validations:
+      required: true
+
+  - type: input
+    id: model
+    attributes:
+      label: Model in the session
+      description: The provider/model id. DeepSeek detection looks for `deepseek` in either part.
+      placeholder: "deepseek/deepseek-chat"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Linux
+        - Windows / WSL
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: view
+    attributes:
+      label: Sidebar view
+      options:
+        - box
+        - line
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Relevant config
+      description: The plugin entry from your `tui.json`, including any options.
+      render: json
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Output from `opencode --print-logs --log-level DEBUG`, if available.
+      render: shell
+    validations:
+      required: false
