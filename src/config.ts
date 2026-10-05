@@ -91,6 +91,10 @@ function parseHolidays(value: unknown): string[] {
   return holidays
 }
 
+export function optionLocale(options: unknown): string | undefined {
+  return isRecord(options) && typeof options.locale === "string" ? options.locale : undefined
+}
+
 export function parseSettings(options: unknown): Settings {
   const root = isRecord(options) ? options : {}
   const raw = isRecord(root.schedule) ? root.schedule : {}

@@ -1,15 +1,19 @@
 {
   "name": "opencode-ds-peak",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Minimal opencode TUI sidebar dot showing whether DeepSeek is in peak or off-peak pricing, with a countdown to the next switch. Five languages.",
   "keywords": [
     "opencode",
+    "opencode-plugin",
     "tui",
     "plugin",
     "deepseek",
     "pricing",
     "peak",
     "off-peak",
+    "discount",
+    "cost",
+    "countdown",
     "sidebar",
     "i18n"
   ],
@@ -24,7 +28,11 @@
     "url": "https://github.com/MendelDamian/opencode-ds-peak/issues"
   },
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "exports": {
+    ".": "./src/index.ts",
     "./tui": "./src/tui.tsx"
   },
   "files": [
@@ -48,15 +56,21 @@
     "solid-js": "^1.9.0"
   },
   "peerDependencies": {
-    "@opencode-ai/plugin": "^1.18.29"
+    "@opencode-ai/plugin": "^1.18.29",
+    "@opencode/plugin": ">=2.0.22"
   },
   "peerDependenciesMeta": {
     "@opencode-ai/plugin": {
+      "optional": true
+    },
+    "@opencode/plugin": {
       "optional": true
     }
   },
   "devDependencies": {
     "@opencode-ai/plugin": "^1.18.34",
+    "@opencode/plugin": "^2.0.22",
+    "@opencode/theme": "^2.0.22",
     "@types/node": "^24.0.0",
     "typescript": "^5.5.0"
   },

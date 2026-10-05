@@ -1,27 +1,10 @@
-import type { TuiPluginApi } from "@opencode-ai/plugin/tui"
-
-export type HostMessage = ReturnType<TuiPluginApi["state"]["session"]["messages"]>[number]
-
 export type ModelRef = {
-  providerID: string
-  modelID: string
+  readonly providerID: string
+  readonly modelID: string
 }
 
 export function isDeepSeek(ref: ModelRef): boolean {
   return `${ref.providerID} ${ref.modelID}`.toLowerCase().includes("deepseek")
-}
-
-function modelRef(message: HostMessage): ModelRef {
-  switch (message.role) {
-    case "user":
-      return { providerID: message.model.providerID, modelID: message.model.modelID }
-    case "assistant":
-      return { providerID: message.providerID, modelID: message.modelID }
-    default: {
-      const _exhaustive: never = message
-      return _exhaustive
-    }
-  }
 }
 
 export function configuredIsDeepSeek(configuredModel?: string): boolean {
@@ -30,7 +13,11 @@ export function configuredIsDeepSeek(configuredModel?: string): boolean {
   return isDeepSeek({ providerID, modelID: rest.join("/") })
 }
 
-export function usesDeepSeek(messages: readonly HostMessage[], configuredModel?: string): boolean {
-  const last = messages.at(-1)
-  return last ? isDeepSeek(modelRef(last)) : configuredIsDeepSeek(configuredModel)
+/**
+ * Decides from an ordered list of candidate model refs, newest last. Falls back
+ * to the configured `provider/model` string when the session has no refs yet.
+ */
+export function usesDeepSeek(refs: readonly ModelRef[], configuredModel?: string): boolean {
+  const last = refs.at(-1)
+  return last ? isDeepSeek(last) : configuredIsDeepSeek(configuredModel)
 }

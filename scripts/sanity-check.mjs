@@ -17,8 +17,7 @@ function test(name, fn) {
   }
 }
 
-const user = (providerID, modelID) => ({ role: "user", model: { providerID, modelID } })
-const assistant = (providerID, modelID) => ({ role: "assistant", providerID, modelID })
+const ref = (providerID, modelID) => ({ providerID, modelID })
 
 const DEFAULT_SCHEDULE = parseSettings().schedule
 
@@ -159,11 +158,11 @@ test("isDeepSeek matches provider or model id substring", () => {
   assert.equal(isDeepSeek({ providerID: "anthropic", modelID: "claude-sonnet-4-6" }), false)
 })
 
-test("usesDeepSeek reads the last message", () => {
-  assert.equal(usesDeepSeek([assistant("deepseek", "deepseek-chat")]), true)
-  assert.equal(usesDeepSeek([user("openrouter", "deepseek/deepseek-chat")]), true)
+test("usesDeepSeek reads the last model ref", () => {
+  assert.equal(usesDeepSeek([ref("deepseek", "deepseek-chat")]), true)
+  assert.equal(usesDeepSeek([ref("openrouter", "deepseek/deepseek-chat")]), true)
   assert.equal(
-    usesDeepSeek([assistant("deepseek", "deepseek-chat"), assistant("anthropic", "claude-sonnet-4-6")]),
+    usesDeepSeek([ref("deepseek", "deepseek-chat"), ref("anthropic", "claude-sonnet-4-6")]),
     false,
   )
 })
