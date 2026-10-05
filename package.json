@@ -46,7 +46,6 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "sanity": "node --experimental-strip-types scripts/sanity-check.mjs",
-    "verify:package": "node scripts/verify-package.mjs",
     "check": "npm run typecheck && npm run sanity",
     "pack": "npm pack --dry-run"
   },

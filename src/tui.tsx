@@ -1,4 +1,3 @@
-/** @jsxImportSource @opentui/solid */
 import { v1 } from "./v1.tsx"
 import { setup } from "./v2.tsx"
 
