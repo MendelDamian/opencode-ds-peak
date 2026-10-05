@@ -34,13 +34,7 @@ entry; OpenCode 1.x reads the v1 TUI plugin entry.
 
 ### OpenCode 2.x
 
-```sh
-opencode plugin add opencode-ds-peak
-```
-
-That writes the package to `opencode.json`, and the CLI loads its TUI component
-automatically. To keep it CLI-only, add it to `~/.config/opencode/cli.json`
-instead:
+Add the package to `~/.config/opencode/cli.json`:
 
 ```json
 {
@@ -48,6 +42,10 @@ instead:
   "plugins": ["opencode-ds-peak"]
 }
 ```
+
+OpenCode installs the package and loads it on the next start. This is a
+CLI-only plugin, so it belongs in `cli.json` rather than the server plugin list
+in `opencode.json`.
 
 ### OpenCode 1.x
 
@@ -83,10 +81,13 @@ For the sidebar block itself, open a session whose model id contains
 
 ## Uninstall
 
-Remove the `opencode-ds-peak` entry from the `plugin` array in your
-`tui.json` (global or project), then restart OpenCode. If you set `notify` or
-changed the view or language through `/peak`, those choices are stored under the
-`opencode-ds-peak.*` keys and can be cleared from OpenCode's key-value store.
+On OpenCode 2.x, remove `opencode-ds-peak` from the `plugins` array in
+`~/.config/opencode/cli.json`. On OpenCode 1.x, remove it from the `plugin`
+array in `tui.json` (global or project). Restart OpenCode.
+
+If you set `notify` or changed the view or language through `/peak`, those
+choices are stored under the plugin's keys and can be cleared from OpenCode's
+key-value store.
 
 ## Why
 
