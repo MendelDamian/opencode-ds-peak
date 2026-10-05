@@ -4,11 +4,42 @@ import { es } from "./locales/es.ts"
 import { de } from "./locales/de.ts"
 import { zh } from "./locales/zh.ts"
 
-const LOCALES = ["en", "pl", "es", "de", "zh"] as const
+export const LOCALES = ["en", "pl", "es", "de", "zh"] as const
 
 export type Locale = (typeof LOCALES)[number]
 
-export type MessageKey = "peak" | "offpeak" | "peakIn" | "offpeakLeft" | "durationH" | "durationM" | "durationLt"
+export const LOCALE_NAMES: Record<Locale, string> = {
+  en: "English",
+  pl: "Polski",
+  es: "Español",
+  de: "Deutsch",
+  zh: "中文",
+}
+
+export type MessageKey =
+  | "peak"
+  | "offpeak"
+  | "peakIn"
+  | "offpeakLeft"
+  | "durationD"
+  | "durationDH"
+  | "durationH"
+  | "durationM"
+  | "durationLt"
+  | "holiday"
+  | "commandTitle"
+  | "commandNow"
+  | "commandNext"
+  | "commandView"
+  | "commandNotify"
+  | "commandLanguage"
+  | "commandLanguageTitle"
+  | "viewBox"
+  | "viewLine"
+  | "stateOn"
+  | "stateOff"
+  | "toastPeakStart"
+  | "toastPeakEnd"
 
 export type Messages = Record<MessageKey, string>
 
@@ -24,7 +55,7 @@ const TAGS = {
   zh: "zh-CN",
 } satisfies Record<Locale, string>
 
-function isLocale(value: string): value is Locale {
+export function isLocale(value: string): value is Locale {
   return LOCALES.some((locale) => locale === value)
 }
 
@@ -50,12 +81,16 @@ export function translate(locale: Locale, key: MessageKey, params?: Record<strin
   return params ? interpolate(template, params) : template
 }
 
-/** Human countdown: whole hours when at least an hour is left, otherwise minutes. */
 export function formatDuration(ms: number, t: Translate): string {
   const minutes = Math.max(0, Math.floor(ms / 60_000))
   if (minutes < 1) return t("durationLt")
 
   const hours = Math.floor(minutes / 60)
+  if (hours >= 24) {
+    const days = Math.floor(hours / 24)
+    const remainder = hours % 24
+    return remainder > 0 ? t("durationDH", { d: days, h: remainder }) : t("durationD", { d: days })
+  }
   return hours > 0 ? t("durationH", { h: hours }) : t("durationM", { m: minutes })
 }
 
