@@ -1,3 +1,4 @@
+/** @jsxImportSource @opentui/solid */
 import type { Context } from "@opencode/plugin/tui/context"
 import { createPeakPlugin } from "./core.tsx"
 import { isViewMode } from "./config.ts"
