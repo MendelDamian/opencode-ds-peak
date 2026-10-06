@@ -1,6 +1,6 @@
 {
   "name": "opencode-ds-peak",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Minimal opencode TUI sidebar dot showing whether DeepSeek is in peak or off-peak pricing, with a countdown to the next switch. Five languages.",
   "keywords": [
     "opencode",
