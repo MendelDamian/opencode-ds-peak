@@ -17,6 +17,11 @@ updates:
           - "*"
         update-types:
           - major
+    ignore:
+      # @opentui/solid and @opentui/keymap pin their peer dependency to
+      # solid-js@1.9.12 exactly, so any bump makes `npm ci` fail with ERESOLVE.
+      # Drop this once @opentui widens the peer range.
+      - dependency-name: "solid-js"
 
   - package-ecosystem: github-actions
     directory: /
