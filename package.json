@@ -71,8 +71,8 @@
     "@opencode-ai/plugin": "^1.18.34",
     "@opencode/plugin": "^2.0.22",
     "@opencode/theme": "^2.0.22",
-    "@types/node": "^24.0.0",
-    "typescript": "^5.5.0"
+    "@types/node": "^26.6.4",
+    "typescript": "^7.0.2"
   },
   "overrides": {
     "@babel/core": "^7.29.6"
