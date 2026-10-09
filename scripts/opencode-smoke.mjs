@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process"
+import { execFileSync, spawn } from "node:child_process"
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join, resolve } from "node:path"
@@ -53,6 +53,59 @@ export default {
 
 const sleep = (ms) => new Promise((resolvePromise) => setTimeout(resolvePromise, ms))
 
+// `script` runs the TUI in its own session, so killing the process we spawned is
+// not enough: the OpenCode child survives and keeps writing into the temporary
+// directory while it is torn down, which is what made cleanup fail with
+// ENOTEMPTY. Snapshot the whole process tree up front and signal all of it.
+function collectTree(pid, acc = []) {
+  let output = ""
+  try {
+    output = execFileSync("pgrep", ["-P", String(pid)], { encoding: "utf8" })
+  } catch {
+    return acc
+  }
+  for (const line of output.split("\n")) {
+    const child = Number(line.trim())
+    if (!child) continue
+    acc.push(child)
+    collectTree(child, acc)
+  }
+  return acc
+}
+
+function signalPid(pid, name) {
+  try {
+    process.kill(pid, name)
+  } catch {
+    // already gone
+  }
+}
+
+function waitForExit(child, ms) {
+  if (child.exitCode !== null || child.signalCode !== null) return Promise.resolve(true)
+  return new Promise((resolvePromise) => {
+    const timer = setTimeout(() => resolvePromise(false), ms)
+    child.once("close", () => {
+      clearTimeout(timer)
+      resolvePromise(true)
+    })
+  })
+}
+
+async function stop(child) {
+  if (!child || (child.exitCode !== null || child.signalCode !== null)) return
+  const tree = collectTree(child.pid)
+  for (const pid of [...tree, child.pid]) signalPid(pid, "SIGTERM")
+  await waitForExit(child, 3000)
+  // Descendants that ignored SIGTERM outlive the parent, so hard-kill the
+  // snapshot regardless of whether the parent itself has exited.
+  for (const pid of tree) signalPid(pid, "SIGKILL")
+  if (child.exitCode === null && child.signalCode === null) {
+    signalPid(child.pid, "SIGKILL")
+    await waitForExit(child, 3000)
+  }
+}
+
 async function waitForMarker(marker, child, ms) {
   const deadline = Date.now() + ms
   while (Date.now() < deadline) {
@@ -71,6 +124,7 @@ async function main() {
   mkdirSync(consumer, { recursive: true })
   mkdirSync(join(home, ".config", "opencode"), { recursive: true })
 
+  let child
   try {
     writeFileSync(join(consumer, "package.json"), JSON.stringify({ name: "consumer", private: true, type: "module" }))
 
@@ -114,15 +168,13 @@ async function main() {
       NO_COLOR: "1",
     }
 
-    const child = spawn(pty[0], pty[1], { env, stdio: ["ignore", "pipe", "pipe"] })
+    child = spawn(pty[0], pty[1], { env, stdio: ["ignore", "pipe", "pipe"] })
     let output = ""
     child.stdout.on("data", (data) => (output += data))
     child.stderr.on("data", (data) => (output += data))
 
     const loaded = await waitForMarker(marker, child, timeoutMs)
-    child.kill("SIGTERM")
-    await sleep(500)
-    if (child.exitCode === null) child.kill("SIGKILL")
+    await stop(child)
 
     const markerText = existsSync(marker) ? readFileSync(marker, "utf8") : ""
     const failed = /plugin operation failed/.test(output)
@@ -140,7 +192,8 @@ async function main() {
     }
     console.log(`ok   OpenCode ${target} installed and loaded ${PLUGIN}`)
   } finally {
-    rmSync(root, { recursive: true, force: true })
+    await stop(child)
+    rmSync(root, { recursive: true, force: true, maxRetries: 20, retryDelay: 100 })
   }
 }
 
