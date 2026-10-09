@@ -30,11 +30,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # The CLI version is read from the installed devDependency at run time,
+        # so a Dependabot bump of the plugin package moves the smoke test with
+        # it and never needs a manual workflow edit.
         include:
           - target: v1
-            opencode: opencode-ai@1.18.34
+            plugin: "@opencode-ai/plugin"
+            cli: opencode-ai
           - target: v2
-            opencode: "@opencode/cli@2.0.23"
+            plugin: "@opencode/plugin"
+            cli: "@opencode/cli"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -48,7 +53,9 @@ jobs:
 
       - name: Install OpenCode
         run: |
-          npm install -g "${{ matrix.opencode }}"
+          version=$(node -p "JSON.parse(require('fs').readFileSync('node_modules/${{ matrix.plugin }}/package.json','utf8')).version")
+          echo "Installing ${{ matrix.cli }}@$version (matching ${{ matrix.plugin }})"
+          npm install -g "${{ matrix.cli }}@$version"
           opencode --version
 
       - name: Install the package and confirm OpenCode loads it
