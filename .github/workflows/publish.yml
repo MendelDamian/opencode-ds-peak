@@ -17,6 +17,8 @@ jobs:
       id-token: write # OIDC token for npm trusted publishing
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # the guard compares the new tag against the previous one
 
       - uses: actions/setup-node@v7
         with:
@@ -42,6 +44,37 @@ jobs:
             echo "Tag v$tag does not match package.json version $version"
             exit 1
           }
+
+      # A release must change something a consumer gets. CI, docs and
+      # devDependency churn do not, so a tag that only carries those is rejected
+      # before it reaches npm. See "When to release" in CONTRIBUTING.md.
+      - name: Reject a release with nothing user-visible
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          previous=$(git describe --tags --abbrev=0 "$GITHUB_REF_NAME^" 2>/dev/null || true)
+          if [ -z "$previous" ]; then
+            echo "No previous release tag; nothing to compare."
+            exit 0
+          fi
+          surface() {
+            git show "$1:package.json" | node -e '
+              let raw = ""
+              process.stdin.on("data", (chunk) => (raw += chunk)).on("end", () => {
+                const pkg = JSON.parse(raw)
+                const keys = ["dependencies", "peerDependencies", "peerDependenciesMeta", "optionalDependencies", "engines", "exports", "files", "type", "bin"]
+                const out = {}
+                for (const key of keys) if (pkg[key] !== undefined) out[key] = pkg[key]
+                process.stdout.write(JSON.stringify(out, null, 2))
+              })
+            '
+          }
+          if git diff --quiet "$previous" "$GITHUB_REF_NAME" -- src && \
+             [ "$(surface "$previous")" = "$(surface "$GITHUB_REF_NAME")" ]; then
+            echo "::error::$GITHUB_REF_NAME changes neither src/ nor the consumer-visible package.json surface."
+            echo "Land a src change or a dependency/peer change first, then tag."
+            exit 1
+          fi
+          echo "$GITHUB_REF_NAME changes user-visible surface since $previous."
 
       - name: Publish to npm
         run: npm publish --provenance --access public

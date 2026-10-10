@@ -107,7 +107,45 @@ Two workflows do the work:
   OIDC instead of a long-lived token, and provenance, then creates a GitHub
   release.
 
-To cut a release:
+### When to release
+
+Release only when someone installing the package gets something different. The
+package ships `src/`, the README, the license and `package.json`, so:
+
+Release for:
+
+- any `src/**` change: a fix, a feature, a new locale, a copy change
+- consumer-visible `package.json` fields: `dependencies`, `peerDependencies`,
+  `peerDependenciesMeta`, `engines`, `exports`, `files`
+
+Do not release for:
+
+- `.github/**`, including CI and Dependabot configuration
+- `scripts/`, `tsconfig.json`, lockfile-only or formatting churn
+- devDependency bumps, which never reach the tarball
+
+Pick the bump:
+
+- **patch** for a bug fix, or for widening a peer range. A compatibility bump is
+  a patch even when the diff is one line.
+- **minor** for a new feature, option or language.
+- **major** for a breaking change, a raised minimum OpenCode version, or a
+  dropped locale.
+
+Time it:
+
+- Release immediately when upstream OpenCode breaks the plugin API, however
+  small the change.
+- Otherwise batch user-facing work and tag when the batch is coherent. Do not
+  tag per commit.
+- Keep CI, docs and dependency housekeeping untagged so they ride along with the
+  next real release.
+
+`publish.yml` enforces the floor of this: a `v*` tag that changes neither
+`src/**` nor the consumer-visible `package.json` surface fails before it can
+publish.
+
+### How to cut a release
 
 ```sh
 npm version patch   # or minor / major; bumps package.json and creates vX.Y.Z
